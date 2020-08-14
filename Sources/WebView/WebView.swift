@@ -52,18 +52,19 @@ public struct WebView: View, UIViewRepresentable {
     /// The WKWebView to display
     public let webView: WKWebView
     
-    public typealias UIViewType = UIViewContainerView<WKWebView>
-    
     public init(webView: WKWebView) {
         self.webView = webView
     }
     
-    public func makeUIView(context: UIViewRepresentableContext<WebView>) -> WebView.UIViewType {
+    public func makeUIView(context: UIViewRepresentableContext<WebView>) -> UIView {
         return UIViewContainerView()
     }
     
-    public func updateUIView(_ uiView: WebView.UIViewType, context: UIViewRepresentableContext<WebView>) {
+    public func updateUIView(_ uiView: UIView, context: UIViewRepresentableContext<WebView>) {
         // If its the same content view we don't need to update.
+        guard let uiView = uiView as? UIViewContainerView else {
+            return
+        }
         if uiView.contentView !== webView {
             uiView.contentView = webView
         }
@@ -71,7 +72,7 @@ public struct WebView: View, UIViewRepresentable {
 }
 
 /// A UIView which simply adds some view to its view hierarchy
-public class UIViewContainerView<ContentView: UIView>: UIView {
+class UIViewContainerView<ContentView: UIView>: UIView {
     var contentView: ContentView? {
         willSet {
             contentView?.removeFromSuperview()
