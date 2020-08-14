@@ -46,6 +46,7 @@ public class WebViewStore: ObservableObject {
   }
 }
 
+#if os(iOS)
 /// A container for using a WKWebView in SwiftUI
 public struct WebView: View, UIViewRepresentable {
   /// The WKWebView to display
@@ -89,3 +90,48 @@ public class UIViewContainerView<ContentView: UIView>: UIView {
     }
   }
 }
+
+#elseif os(macOS)
+/// A container for using a WKWebView in SwiftUI
+public struct WebView: View, NSViewRepresentable {
+    public let webView: WKWebView
+    
+    public init(webView: WKWebView) {
+        self.webView = webView
+    }
+    
+    public func makeNSView(context: Context) -> NSView {
+        return NSViewContainerView()
+    }
+    
+    public func updateNSView(_ view: NSView, context: Context) {
+        guard let view = view as? NSViewContainerView else {
+            return
+        }
+        if view.contentView !== webView {
+            view.contentView = webView
+        }
+    }
+}
+
+/// A NSView which simply adds some view to its view hierarchy
+class NSViewContainerView<ContentView: NSView>: NSView {
+    var contentView: ContentView? {
+        willSet {
+            contentView?.removeFromSuperview()
+        }
+        didSet {
+            if let contentView = contentView {
+                addSubview(contentView)
+                contentView.translatesAutoresizingMaskIntoConstraints = false
+                NSLayoutConstraint.activate([
+                    contentView.leadingAnchor.constraint(equalTo: leadingAnchor),
+                    contentView.trailingAnchor.constraint(equalTo: trailingAnchor),
+                    contentView.topAnchor.constraint(equalTo: topAnchor),
+                    contentView.bottomAnchor.constraint(equalTo: bottomAnchor)
+                ])
+            }
+        }
+    }
+}
+#endif
